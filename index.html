@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyTrack GL - Suivi de Progression</title>
+    <style>
+        :root {
+            --primary: #3498db;
+            --secondary: #2980b9;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --dark: #34495e;
+            --light: #ecf0f1;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        nav {
+            background-color: var(--dark);
+            padding: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        
+        nav a:hover {
+            background-color: rgba(255,255,255,0.1);
+        }
+        
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .card h3 {
+            margin-top: 0;
+            color: var(--dark);
+            border-bottom: 2px solid var(--light);
+            padding-bottom: 0.5rem;
+        }
+        
+        .modules {
+            margin-top: 2rem;
+        }
+        
+        .module {
+            background-color: white;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .module-header {
+            background-color: var(--dark);
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .module-content {
+            padding: 1rem;
+            display: block;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background-color: var(--light);
+            border-radius: 4px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+        
+        .progress-value {
+            height: 100%;
+            background-color: var(--success);
+            border-radius: 4px;
+        }
+        
+        .topic-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .topic-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+            background-color: var(--light);
+        }
+        
+        .topic-checkbox {
+            margin-right: 1rem;
+        }
+        
+        .topic-name {
+            flex-grow: 1;
+        }
+        
+        .topic-mastery {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: white;
+        }
+        
+        .mastery-low {
+            background-color: var(--danger);
+        }
+        
+        .mastery-medium {
+            background-color: var(--warning);
+        }
+        
+        .mastery-high {
+            background-color: var(--success);
+        }
+        
+        .calendar {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+        }
+        
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            background-color: var(--light);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .calendar-day:hover {
+            transform: scale(1.05);
+        }
+        
+        .calendar-day.has-event {
+            background-color: rgba(52, 152, 219, 0.2);
+            border: 2px solid var(--primary);
+        }
+        
+        .event-tag {
+            height: 8px;
+            width: 8px;
+            border-radius: 50%;
+            margin: 2px;
+        }
+        
+        .tag-exam {
+            background-color: var(--danger);
+        }
+        
+        .tag-revision {
+            background-color: var(--success);
+        }
+        
+        .tag-assignment {
+            background-color: var(--warning);
+        }
+        
+        .day-events {
+            display: flex;
+            margin-top: 4px;
+        }
+        
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: var(--secondary);
+        }
+        
+        .toggle-module {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>StudyTrack GL</h1>
+        <p>Suivi personnalisé pour réussir votre licence en Génie Logiciel</p>
+    </header>
+    
+    <nav>
+        <div>
+            <a href="#dashboard">Tableau de bord</a>
+            <a href="#modules">Modules</a>
+            <a href="#calendar">Calendrier</a>
+        </div>
+        <div>
+            <a href="#profile">Mon profil</a>
+        </div>
+    </nav>
+    
+    <main>
+        <section id="dashboard" class="dashboard">
+            <div class="card">
+                <h3>Progression globale</h3>
+                <div class="progress-bar">
+                    <div class="progress-value" style="width: 45%"></div>
+                </div>
+                <p>Vous avez complété <strong>45%</strong> du programme du semestre</p>
+                <p>Points forts: Programmation en C, Méthodes d'analyse</p>
+                <p>À améliorer: Calcul intégral, Structures algébriques</p>
+            </div>
+            
+            <div class="card">
+                <h3>Prochaines échéances</h3>
+                <ul>
+                    <li><strong>12 Mai</strong>: Examen de Calcul intégral</li>
+                    <li><strong>15 Mai</strong>: Projet de Programmation web</li>
+                    <li><strong>18 Mai</strong>: TP noté sur les Bases de données</li>
+                </ul>
+                <button class="btn">Voir toutes les échéances</button>
+            </div>
+            
+            <div class="card">
+                <h3>Recommandations</h3>
+                <p>D'après votre progression, nous vous recommandons de:</p>
+                <ul>
+                    <li>Revoir les exercices de Calcul intégral du chapitre 3</li>
+                    <li>Pratiquer davantage les structures de données en C</li>
+                    <li>Compléter les exercices sur les bases de données</li>
+                </ul>
+            </div>
+        </section>
+        
+        <section id="modules" class="modules">
+            <h2>Mes modules</h2>
+            
+            <div class="module">
+                <div class="module-header">
+                    <div>
+                        <span>MTH1224</span>
+                        <strong>Calcul intégral et Application</strong>
+                        <span>(4 Cr)</span>
+                    </div>
+                    <button class="toggle-module">▼</button>
+                </div>
+                <div class="module-content">
+                    <div class="progress-bar">
+                        <div class="progress-value" style="width: 35%"></div>
+                    </div>
+                    <p>Progression: <strong>35%</strong></p>
+                    
+                    <h4>Chapitres</h4>
+                    <ul class="topic-list">
+                        <li class="topic-item">
+                            <input type="checkbox" class="topic-checkbox" checked>
+                            <span class="topic-name">Introduction aux intégrales</span>
+                            <span class="topic-mastery mastery-high">Maîtrisé</span>
+                        </li>
+                        <li class="topic-item">
+                            <input type="checkbox" class="topic-checkbox" checked>
+                            <span class="topic-name">Techniques d'intégration</span>
+                            <span class="topic-mastery mastery-medium">En progression</span>
+                        </li>
+                        <li class="topic-item">
+                            <input type="checkbox" class="topic-checkbox">
+                            <span class="topic-name">Intégrales impropres</span>
+                            <span class="topic-mastery mastery-low">À revoir</span>
+                        </li>
+                        <li class="topic-item">
+                            <input type="checkbox" class="topic-checkbox">
+                            <span class="topic-name">Applications en physique</span>
+                            <span class="topic-mastery mastery-low">Non commencé</span>
+                        </li>
+                    </ul>
+                    
+                    <h4>Ressources</h4>
+                    <ul>
+                        <li>Cours du Dr TCHALLA (disponibles en PDF)</li>
+                        <li>Exercices corrigés (séances TD)</li>
+                        <li>Liens vers videos explicatives</li>
+                    </ul>
+                    
+                    <button class="btn">Planifier une révision</button>
+                </div>
+            </div>
+            
+            <div class="module">
+                <div class="module-header">
+                    <div>
+                        <span>1INF1226</span>
+                        <strong>Programmation en langage C</strong>
+                        <span>(3 Cr)</span>
+                    </div>
+                    <button class="toggle-module">▼</button>
+                </div>
+                <div class="module-content">
+                    <div class="progress-bar">
+                        <div class="progress-value" style="width: 68%"></div>
+                    </div>
+                    <p>Progression: <strong>68%</strong></p>
+                    
+                    <h4>Chapitres</h4>
+                    <ul class="topic-list">
+                        <li class="topic-item">
+                            <input type="checkbox" class="topic-checkbox" checked>
+                            <span class="topic-name">Base du langage C</span>
+                            <span class="topic-mastery mastery-high">Maîtrisé</span>
+                        </li>
+                        <li class="topic-item">
+                            <input type="checkbox" class="topic-checkbox" checked>
+                            <span class="topic-name">Structures de contrôle</span>
+                            <span class="topic-mastery mastery-high">Maîtrisé</span>
+                        </li>
+                        <li class="topic-item">
+                            <input type="checkbox" class="topic-checkbox" checked>
+                            <span class="topic-name">Tableaux et Chaînes</span>
+                            <span class="topic-mastery mastery-medium">En progression</span>
+                        </li>
+                        <li class="topic-item">
+                            <input type="checkbox" class="topic-checkbox">
+                            <span class="topic-name">Pointeurs et allocation dynamique</span>
+                            <span class="topic-mastery mastery-low">En cours</span>
+                        </li>
+                        <li class="topic-item">
+                            <input type="checkbox" class="topic-checkbox">
+                            <span class="topic-name">Structures et fichiers</span>
+                            <span class="topic-mastery mastery-low">Non commencé</span>
+                        </li>
+                    </ul>
+                    
+                    <h4>Ressources</h4>
+                    <ul>
+                        <li>Support de cours M AKAPKO</li>
+                        <li>Exercices pratiques (Séances TP)</li>
+                        <li>Mini-projets à réaliser</li>
+                    </ul>
+                    
+                    <button class="btn">Planifier une révision</button>
+                </div>
+            </div>
+            
+            <!-- Ajouter d'autres modules ici -->
+        </section>
+        
+        <section id="calendar" class="calendar">
+            <div class="calendar-header">
+                <button class="btn">◀ Précédent</button>
+                <h2>Mai 2025</h2>
+                <button class="btn">Suivant ▶</button>
+            </div>
+            
+            <div class="calendar-grid">
+                <div class="calendar-day">Lu<br>1</div>
+                <div class="calendar-day">Ma<br>2</div>
+                <div class="calendar-day">Me<br>3</div>
+                <div class="calendar-day">Je<br>4</div>
+                <div class="calendar-day">Ve<br>5</div>
+                <div class="calendar-day">Sa<br>6</div>
+                <div class="calendar-day">Di<br>7</div>
+                
+                <div class="calendar-day">Lu<br>8</div>
+                <div class="calendar-day">Ma<br>9</div>
+                <div class="calendar-day">Me<br>10</div>
+                <div class="calendar-day">Je<br>11</div>
+                <div class="calendar-day has-event">
+                    Ve<br>12
+                    <div class="day-events">
+                        <div class="event-tag tag-exam"></div>
+                    </div>
+                </div>
+                <div class="calendar-day has-event">
+                    Sa<br>13
+                    <div class="day-events">
+                        <div class="event-tag tag-revision"></div>
+                    </div>
+                </div>
+                <div class="calendar-day">Di<br>14</div>
+                
+                <div class="calendar-day has-event">
+                    Lu<br>15
+                    <div class="day-events">
+                        <div class="event-tag tag-assignment"></div>
+                    </div>
+                </div>
+                <div class="calendar-day">Ma<br>16</div>
+                <div class="calendar-day">Me<br>17</div>
+                <div class="calendar-day has-event">
+                    Je<br>18
+                    <div class="day-events">
+                        <div class="event-tag tag-exam"></div>
+                    </div>
+                </div>
+                <div class="calendar-day">Ve<br>19</div>
+                <div class="calendar-day has-event">
+                    Sa<br>20
+                    <div class="day-events">
+                        <div class="event-tag tag-revision"></div>
+                    </div>
+                </div>
+                <div class="calendar-day">Di<br>21</div>
+                
+                <div class="calendar-day">Lu<br>22</div>
+                <div class="calendar-day">Ma<br>23</div>
+                <div class="calendar-day">Me<br>24</div>
+                <div class="calendar-day">Je<br>25</div>
+                <div class="calendar-day">Ve<br>26</div>
+                <div class="calendar-day">Sa<br>27</div>
+                <div class="calendar-day">Di<br>28</div>
+                
+                <div class="calendar-day">Lu<br>29</div>
+                <div class="calendar-day">Ma<br>30</div>
+                <div class="calendar-day">Me<br>31</div>
+            </div>
+            
+            <div style="margin-top: 1rem">
+                <h3>Légende</h3>
+                <div style="display: flex; gap: 1rem">
+                    <div style="display: flex; align-items: center">
+                        <div class="event-tag tag-exam" style="margin-right: 0.5rem"></div>
+                        <span>Examen</span>
+                    </div>
+                    <div style="display: flex; align-items: center">
+                        <div class="event-tag tag-revision" style="margin-right: 0.5rem"></div>
+                        <span>Révision planifiée</span>
+                    </div>
+                    <div style="display: flex; align-items: center">
+                        <div class="event-tag tag-assignment" style="margin-right: 0.5rem"></div>
+                        <span>Devoir à rendre</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Simple toggle functionality for module content
+        document.querySelectorAll('.toggle-module').forEach(button => {
+            button.addEventListener('click', () => {
+                const content = button.parentElement.nextElementSibling;
+                const isVisible = content.style.display !== 'none';
+                
+                content.style.display = isVisible ? 'none' : 'block';
+                button.textContent = isVisible ? '▼' : '▲';
+            });
+        });
+    </script>
+</body>
+</html>
